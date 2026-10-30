@@ -17,3 +17,8 @@ backups/*
 
 # Logs
 *.log
+
+# Editor temporary files
+*.swp
+*.swo
+*~
