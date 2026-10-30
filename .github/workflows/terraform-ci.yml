@@ -1,0 +1,53 @@
+
+name: Terraform and Database CI
+
+on:
+  push:
+    branches:
+      - MASTER
+  pull_request:
+    branches:
+      - MASTER
+
+jobs:
+  terraform-validation:
+    name: Terraform Validation
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: devops-terraform-db-assessment
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive infra/
+
+      - name: Initialize and validate Dev
+        working-directory: devops-terraform-db-assessment/infra/envs/dev
+        run: |
+          terraform init -backend=false
+          terraform validate
+
+      - name: Initialize and validate Prod
+        working-directory: devops-terraform-db-assessment/infra/envs/prod
+        run: |
+          terraform init -backend=false
+          terraform validate
+
+  database-validation:
+    name: Docker Compose Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose configuration
+        working-directory: devops-terraform-db-assessment
+        run: docker compose config --quiet
