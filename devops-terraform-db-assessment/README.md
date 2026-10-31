@@ -151,21 +151,59 @@ docker-compose exec -T mysql mysql -uappuser -papppassword bookings < db/queries
 
 ## 6. Database Backup and Restore
 
-Shell scripts are provided for database backup and restoration.
+Shell scripts are provided to demonstrate MySQL database backup and recovery.
 
 ### Backup
+
+Run the backup script from the project root:
 
 ```bash
 bash scripts/backup.sh
 ```
 
-### Restore
+The script creates a timestamped SQL dump inside the `backups/` directory.
 
-```bash
-bash scripts/restore.sh <backup-file>
+Example:
+
+```text
+backups/bookings_20261031_113730.sql
 ```
 
-The backup and restore workflow supports MySQL database recovery and validation.
+### Restore
+
+Pass the generated backup file to the restore script:
+
+```bash
+bash scripts/restore.sh backups/bookings_20261031_113730.sql
+```
+
+The restore script:
+- Validates that the backup file exists and contains SQL table definitions.
+- Drops the existing `bookings_restore` database, if present.
+- Creates a fresh `bookings_restore` database.
+- Imports the backup into the fresh database.
+- Verifies the restored booking and event record counts.
+
+### Verify Restore
+
+Check the restored booking count:
+
+```bash
+docker exec devops-assessment-mysql mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -N -e "SELECT COUNT(*) FROM bookings_restore.hotel_bookings;"
+```
+
+Check the restored event count:
+
+```bash
+docker exec devops-assessment-mysql mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -N -e "SELECT COUNT(*) FROM bookings_restore.booking_events;"
+```
+
+Expected results with the supplied seed data:
+
+```text
+hotel_bookings: 200
+booking_events: 200
+```
 
 Database backup files are excluded from Git to avoid committing generated database dumps.
 
