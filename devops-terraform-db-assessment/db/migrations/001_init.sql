@@ -27,4 +27,3 @@ CREATE TABLE IF NOT EXISTS booking_events (
         FOREIGN KEY (booking_id)
         REFERENCES hotel_bookings(id)
 ) ENGINE=InnoDB;
-
