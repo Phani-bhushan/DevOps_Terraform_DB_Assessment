@@ -84,11 +84,11 @@ module "rds" {
   db_username = "dbadmin"
   db_password = var.db_password
 
-  instance_class          = "db.t3.small"
-  allocated_storage       = 50
-  backup_retention_period = 7
-  deletion_protection     = true
-  skip_final_snapshot     = false
-
-  tags = local.common_tags
+  instance_class            = "db.t3.small"
+  allocated_storage         = 50
+  backup_retention_period   = 7
+  deletion_protection       = true
+  skip_final_snapshot       = false
+  final_snapshot_identifier = "${var.project_name}-mysql-final-snapshot"
+  tags                      = local.common_tags
 }
