@@ -2,15 +2,15 @@
 
 ## 1. Project Overview
 
-This project demonstrates an AWS-based infrastructure design using Terraform reusable modules, PostgreSQL database management, Docker Compose, and GitHub Actions CI automation.
+This project demonstrates an AWS-based infrastructure design using Terraform reusable modules, MySQL database management, Docker Compose, and GitHub Actions CI automation.
 
 The solution follows a modular and environment-based approach, with separate Development and Production configurations.
 
 **Key objectives:**
 - Provision infrastructure using reusable Terraform modules.
-- Design a scalable AWS architecture using ECS Fargate and RDS PostgreSQL.
+- Design a scalable AWS architecture using ECS Fargate and RDS MySQL.
 - Maintain separate Dev and Prod configurations.
-- Manage PostgreSQL schema migrations, indexes, and seed data.
+- Manage MySQL schema migrations, indexes, and seed data.
 - Implement database backup and restore procedures.
 - Automate Terraform and Docker Compose validation using GitHub Actions.
 
@@ -18,7 +18,7 @@ The solution follows a modular and environment-based approach, with separate Dev
 
 The proposed AWS architecture follows this flow:
 
-Internet → Application Load Balancer → ECS Fargate → Private RDS PostgreSQL
+Internet → Application Load Balancer → ECS Fargate → Private RDS MySQL
 
 ### AWS Components
 
@@ -27,7 +27,7 @@ Internet → Application Load Balancer → ECS Fargate → Private RDS PostgreSQ
 - **Private Subnets:** Host ECS tasks and RDS resources.
 - **Application Load Balancer:** Distributes incoming HTTP traffic.
 - **Amazon ECS Fargate:** Runs containerized application workloads.
-- **Amazon RDS PostgreSQL:** Managed relational database.
+- **Amazon RDS MySQL:** Managed relational database.
 - **Security Groups:** Control communication between infrastructure components.
 
 ## 3. Project Structure
@@ -84,7 +84,7 @@ Terraform is organized into reusable modules to improve maintainability and redu
 |---|---|
 | Network | VPC, public/private subnets, routing and networking |
 | ECS | ECS cluster, task definition, service and load balancer |
-| RDS | PostgreSQL database instance and configuration |
+| RDS | MySQL database instance and configuration |
 
 ### Environment Configuration
 
@@ -102,11 +102,11 @@ Separate Terraform root configurations are maintained for Dev and Prod.
 | Backup Retention | 1 day | 7 days |
 | Deletion Protection | Disabled | Enabled |
 
-Both environments use PostgreSQL on Amazon RDS, private database access, and encrypted storage.
+Both environments use MySQL on Amazon RDS, private database access, and encrypted storage.
 
 ## 5. Database Implementation
 
-PostgreSQL is managed locally using Docker Compose.
+MySQL is managed locally using Docker Compose.
 
 ### Database Components
 
@@ -116,7 +116,7 @@ PostgreSQL is managed locally using Docker Compose.
 - Booking report SQL query.
 - Database backup and restore scripts.
 
-### Start PostgreSQL
+### Start MySQL
 
 ```bash
 docker-compose up -d
@@ -131,21 +131,22 @@ docker-compose ps
 ### Run Database Migrations
 
 ```bash
-docker-compose exec -T postgres psql -U appuser -d bookings < db/migrations/001_init.sql
+docker-compose exec -T mysql mysql -uappuser -papppassword bookings < db/migrations/001_init.sql
 
-docker-compose exec -T postgres psql -U appuser -d bookings < db/migrations/002_indexes.sql
+docker-compose exec -T mysql mysql -uappuser -papppassword bookings < db/migrations/002_indexes.sql
 ```
 
 ### Load Seed Data
 
 ```bash
-docker-compose exec -T postgres psql -U appuser -d bookings < db/seed.sql
+docker-compose exec -T mysql mysql -uappuser -papppassword bookings < db/seed.sql
 ```
+Note: Run the seed script once on a fresh database to avoid inserting duplicate test records.
 
 ### Execute Report Query
 
 ```bash
-docker-compose exec -T postgres psql -U appuser -d bookings < db/queries/booking_report.sql
+docker-compose exec -T mysql mysql -uappuser -papppassword bookings < db/queries/booking_report.sql
 ```
 
 ## 6. Database Backup and Restore
@@ -164,7 +165,7 @@ bash scripts/backup.sh
 bash scripts/restore.sh <backup-file>
 ```
 
-The backup and restore workflow supports PostgreSQL database recovery and validation.
+The backup and restore workflow supports MySQL database recovery and validation.
 
 Database backup files are excluded from Git to avoid committing generated database dumps.
 
@@ -251,10 +252,10 @@ Terraform formatting and validation were performed for both environments. GitHub
 - Amazon VPC
 - Amazon ECS Fargate
 - Application Load Balancer
-- Amazon RDS PostgreSQL
+- Amazon RDS MySQL
 - Docker
 - Docker Compose
-- PostgreSQL
+- MySQL
 - SQL
 - Bash
 - Git

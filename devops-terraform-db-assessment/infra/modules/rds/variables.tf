@@ -14,19 +14,19 @@ variable "rds_security_group_id" {
 }
 
 variable "db_name" {
-  description = "PostgreSQL database name"
+  description = "MySQL database name"
   type        = string
   default     = "bookings"
 }
 
 variable "db_username" {
-  description = "Master username for PostgreSQL"
+  description = "Master username for MySQL"
   type        = string
   default     = "dbadmin"
 }
 
 variable "db_password" {
-  description = "Master password for PostgreSQL"
+  description = "Master password for MySQL"
   type        = string
   sensitive   = true
 }

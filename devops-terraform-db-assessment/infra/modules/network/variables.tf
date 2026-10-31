@@ -30,9 +30,9 @@ variable "allowed_http_cidr" {
 }
 
 variable "database_port" {
-  description = "PostgreSQL database port"
+  description = "MySQL database port"
   type        = number
-  default     = 5432
+  default     = 3306
 }
 
 variable "tags" {

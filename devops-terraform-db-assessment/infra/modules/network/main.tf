@@ -159,7 +159,7 @@ resource "aws_security_group" "ecs" {
 # RDS Security Group
 resource "aws_security_group" "rds" {
   name        = "${var.project_name}-rds-sg"
-  description = "Allow PostgreSQL traffic only from ECS"
+  description = "Allow MySQL traffic only from ECS"
   vpc_id      = aws_vpc.this.id
 
   ingress {

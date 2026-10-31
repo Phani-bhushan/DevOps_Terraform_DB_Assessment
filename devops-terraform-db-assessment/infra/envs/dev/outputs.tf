@@ -19,7 +19,7 @@ output "ecs_service_name" {
 }
 
 output "rds_endpoint" {
-  description = "Dev PostgreSQL endpoint"
+  description = "Dev MySQL endpoint"
   value       = module.rds.db_endpoint
 }
 

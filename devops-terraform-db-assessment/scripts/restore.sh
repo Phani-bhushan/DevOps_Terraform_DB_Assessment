@@ -2,8 +2,9 @@
 
 set -euo pipefail
 
-DB_USER="appuser"
+DB_CONTAINER="devops-assessment-mysql"
 RESTORE_DB="bookings_restore"
+DB_USER="root"
 
 if [ $# -ne 1 ]; then
     echo "Usage: $0 <backup_file>"
@@ -17,39 +18,34 @@ if [ ! -s "$BACKUP_FILE" ]; then
     exit 1
 fi
 
-echo "Checking backup format..."
+echo "Checking MySQL backup file..."
 
-docker-compose exec -T postgres pg_restore -l < "$BACKUP_FILE" > /dev/null
+if ! grep -q "CREATE TABLE" "$BACKUP_FILE"; then
+    echo "ERROR: Backup does not appear to contain table definitions."
+    exit 1
+fi
 
-echo "Backup format verified."
+echo "Backup file verified."
 
 echo "Creating restore database..."
 
-docker-compose exec -T postgres dropdb \
-    -U "$DB_USER" --if-exists "$RESTORE_DB"
-
-docker-compose exec -T postgres createdb \
-    -U "$DB_USER" "$RESTORE_DB"
+docker exec "$DB_CONTAINER" sh -c \
+    'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e "DROP DATABASE IF EXISTS bookings_restore; CREATE DATABASE bookings_restore;"'
 
 echo "Restoring database..."
 
-docker-compose exec -T postgres pg_restore \
-    -U "$DB_USER" \
-    -d "$RESTORE_DB" \
-    --no-owner \
-    --no-acl < "$BACKUP_FILE"
+docker exec -i "$DB_CONTAINER" sh -c \
+    'exec mysql -uroot -p"$MYSQL_ROOT_PASSWORD" bookings_restore' \
+    < "$BACKUP_FILE"
 
 echo "Restore completed successfully!"
 
 echo "Verifying restored bookings..."
 
-docker-compose exec -T postgres psql \
-    -U "$DB_USER" -d "$RESTORE_DB" \
-    -c "SELECT COUNT(*) AS restored_bookings FROM hotel_bookings;"
+docker exec "$DB_CONTAINER" sh -c \
+    'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -N -e "SELECT COUNT(*) AS restored_bookings FROM bookings_restore.hotel_bookings;"'
 
 echo "Verifying restored events..."
 
-docker-compose exec -T postgres psql \
-    -U "$DB_USER" -d "$RESTORE_DB" \
-    -c "SELECT COUNT(*) AS restored_events FROM booking_events;"
-
+docker exec "$DB_CONTAINER" sh -c \
+    'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -N -e "SELECT COUNT(*) AS restored_events FROM bookings_restore.booking_events;"'

@@ -5,7 +5,7 @@ SELECT
     SUM(amount) AS total_amount
 FROM hotel_bookings
 WHERE city = 'Delhi'
-  AND created_at >= NOW() - INTERVAL '30 days'
+  AND created_at >= NOW() - INTERVAL 30 day
 GROUP BY org_id, status
 ORDER BY org_id, status;
 

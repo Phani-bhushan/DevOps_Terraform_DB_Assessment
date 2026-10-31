@@ -1,28 +1,27 @@
-version: "3.8"
-
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: devops-assessment-postgres
+  mysql:
+    image: mysql:8.0
+    container_name: devops-assessment-mysql
     restart: unless-stopped
 
     environment:
-      POSTGRES_DB: bookings
-      POSTGRES_USER: appuser
-      POSTGRES_PASSWORD: apppassword
+      MYSQL_DATABASE: bookings
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppassword
+      MYSQL_ROOT_PASSWORD: rootpassword
 
     ports:
-      - "5432:5432"
+      - "3306:3306"
 
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U appuser -d bookings"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "appuser", "-papppassword"]
       interval: 10s
       timeout: 5s
       retries: 5
 
 volumes:
-  postgres_data:
+  mysql_data:
 

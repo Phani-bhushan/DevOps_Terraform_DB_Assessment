@@ -1,40 +1,45 @@
-WITH inserted_bookings AS (
-    INSERT INTO hotel_bookings (
-        org_id,
-        hotel_id,
-        city,
-        checkin_date,
-        checkout_date,
-        amount,
-        status,
-        created_at
-    )
-    SELECT
-        CASE
-            WHEN n % 3 = 0 THEN '11111111-1111-1111-1111-111111111111'::UUID
-            WHEN n % 3 = 1 THEN '22222222-2222-2222-2222-222222222222'::UUID
-            ELSE '33333333-3333-3333-3333-333333333333'::UUID
-        END,
-        'HOTEL-' || LPAD(n::TEXT, 3, '0'),
-        CASE
-            WHEN n % 4 = 0 THEN 'Delhi'
-            WHEN n % 4 = 1 THEN 'Hyderabad'
-            WHEN n % 4 = 2 THEN 'Mumbai'
-            ELSE 'Bangalore'
-        END,
-        CURRENT_DATE + (n % 60),
-        CURRENT_DATE + (n % 60) + 2,
-        (2000 + (n * 125.50))::NUMERIC(12,2),
-        CASE
-            WHEN n % 4 = 0 THEN 'confirmed'
-            WHEN n % 4 = 1 THEN 'pending'
-            WHEN n % 4 = 2 THEN 'cancelled'
-            ELSE 'completed'
-        END,
-        CURRENT_TIMESTAMP - (n % 30) * INTERVAL '1 day'
-    FROM generate_series(1, 200) AS n
-    RETURNING id, status, city
+INSERT INTO hotel_bookings (
+    org_id,
+    hotel_id,
+    city,
+    checkin_date,
+    checkout_date,
+    amount,
+    status,
+    created_at
 )
+WITH RECURSIVE numbers AS (
+    SELECT 1 AS n
+    UNION ALL
+    SELECT n + 1
+    FROM numbers
+    WHERE n < 200
+)
+SELECT
+    CASE
+        WHEN MOD(n, 3) = 0 THEN '11111111-1111-1111-1111-111111111111'
+        WHEN MOD(n, 3) = 1 THEN '22222222-2222-2222-2222-222222222222'
+        ELSE '33333333-3333-3333-3333-333333333333'
+    END,
+    CONCAT('HOTEL-', LPAD(n, 3, '0')),
+    CASE
+        WHEN MOD(n, 4) = 0 THEN 'Delhi'
+        WHEN MOD(n, 4) = 1 THEN 'Hyderabad'
+        WHEN MOD(n, 4) = 2 THEN 'Mumbai'
+        ELSE 'Bangalore'
+    END,
+    CURRENT_DATE + INTERVAL MOD(n, 60) DAY,
+    CURRENT_DATE + INTERVAL (MOD(n, 60) + 2) DAY,
+    2000 + (n * 125.50),
+    CASE
+        WHEN MOD(n, 4) = 0 THEN 'confirmed'
+        WHEN MOD(n, 4) = 1 THEN 'pending'
+        WHEN MOD(n, 4) = 2 THEN 'cancelled'
+        ELSE 'completed'
+    END,
+    CURRENT_TIMESTAMP - INTERVAL MOD(n, 30) DAY
+FROM numbers;
+
 INSERT INTO booking_events (
     booking_id,
     event_type,
@@ -48,10 +53,10 @@ SELECT
         WHEN status = 'cancelled' THEN 'booking_cancelled'
         ELSE 'booking_completed'
     END,
-    jsonb_build_object(
+    JSON_OBJECT(
         'source', 'assessment_seed',
         'city', city,
         'status', status
     )
-FROM inserted_bookings;
-
+FROM hotel_bookings
+WHERE hotel_id LIKE 'HOTEL-%';
